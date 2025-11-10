@@ -138,7 +138,7 @@
             <button type="submit" class="btn btn-calcular">Calcular</button>
         </form>
 
-        <canvas id="canvasResultados" width="440" height="100"></canvas>
+        <canvas id="canvasResultados" height="100"></canvas>
 
         <div id="error"></div>
         <div class="tipo-cambio">Usando tipo de cambio: $1.00 USD = S/ 3.38 PEN</div>
@@ -216,6 +216,8 @@
                     return;
                 }
 
+
+
                 let precioPorMujer_USD = 0;
                 let precioPorHombre_USD = 0;
 
@@ -231,6 +233,10 @@
                 }
 
                 // --- Dibujar Resultados en Canvas ---
+
+                canvas.style.display = 'block';
+                canvas.width = canvas.clientWidth;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 let textoMujer = 'N/A (0 mujeres)';
                 let textoHombre = 'N/A (0 hombres)';
@@ -272,7 +278,7 @@
                 // -----------------------------
 
                 // Mostrar el canvas
-                canvas.style.display = 'block';
+                
             }
         });
     </script>
