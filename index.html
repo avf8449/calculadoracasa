@@ -1,432 +1,289 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora 100% Canvas</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            margin: 0;
-            padding: 10px;
-            box-sizing: border-box; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            /* Evitar que el cuerpo haga scroll cuando el input está enfocado */
-            overflow: hidden; 
-        }
-        
-        canvas {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            cursor: default;
-            max-width: 100%;
-            height: auto; 
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Jardineria y Minera Socolich</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 28px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box; /* Asegura que el padding esté incluido en el ancho */
+        }
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; 
+            font-size: 1rem;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-preset {
+            background-color: #e6f0ff;
+            color: #0056d6;
+        }
+        .btn-preset:hover {
+            background-color: #d1e0ff;
+        }
+        .btn-calcular {
+            background-color: #007bff;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .btn-calcular:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        /* --- Estilos para el Canvas --- */
+        #canvasResultados {
+            margin-top: 24px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            width: 100%; /* Hace el canvas responsive en ancho */
+            height: 100px;  /* Altura fija */
+            display: none; /* Oculto al inicio */
+        }
+        /* ------------------------------- */
 
-        /* --- NUEVO: ESTILO PARA EL INPUT OCULTO --- */
-        /* Lo ocultamos moviéndolo fuera de la pantalla. 
-           No usamos 'display: none' porque eso evitaría que se pueda enfocar. */
-        #hiddenInput {
-            position: absolute;
-            top: -100px; /* Muy lejos de la pantalla */
-            left: 0;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            /* Deshabilitar ayudas nativas que interfieran con la UI */
-            autocapitalize: "off";
-            autocorrect: "off";
-            spellcheck: false;
-        }
-    </style>
+        #error {
+            color: #d93025;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .tipo-cambio {
+            font-size: 0.85rem;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-    <canvas id="appCanvas" width="500" height="700"></canvas>
+    <div class="container">
+        <h1>Jardineria y Minera Socolich</h1>
 
-    <input type="text" id="hiddenInput">
+        <div class="preset-buttons">
+            <button class="btn btn-preset" id="preset1">Casa 1 (1700 / 1500)</button>
+            <button class="btn btn-preset" id="preset2">Casa 2 (2200 / 2000)</button>
+        </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            const canvas = document.getElementById('appCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            // --- NUEVO: Referencia al input oculto ---
-            const hiddenInput = document.getElementById('hiddenInput');
+        <form id="calculadoraForm">
+            <div class="form-group">
+                <label for="precioCasa">Precio de la Casa (USD)</label>
+                <input type="number" id="precioCasa" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="varMujeres">Variable Precio Mujeres (USD)</label>
+                <input type="number" id="varMujeres" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="numMujeres">Número de Mujeres</label>
+                <input type="number" id="numMujeres" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+                <label for="numHombres">Número de Hombres</label>
+                <input type="number" id="numHombres" min="0" step="1" required>
+            </div>
+            <button type="submit" class="btn btn-calcular">Calcular</button>
+        </form>
 
-            // --- FIX HiDPI ---
-            const baseWidth = 500;
-            const baseHeight = 700;
-            const dpr = window.devicePixelRatio || 1; 
-            canvas.width = baseWidth * dpr;
-            canvas.height = baseHeight * dpr;
-            canvas.style.width = `${baseWidth}px`;
-            canvas.style.height = `${baseHeight}px`;
-            ctx.scale(dpr, dpr);
-            // --- FIN FIX HiDPI ---
+        <canvas id="canvasResultados" height="100"></canvas>
 
-            const TIPO_DE_CAMBIO_PEN = 3.38;
+        <div id="error"></div>
+        <div class="tipo-cambio">Usando tipo de cambio: $1.00 USD = S/ 3.38 PEN</div>
+    </div>
 
-            // --- 1. ESTADO --- (Sin cambios)
-            const state = {
-                inputs: {
-                    precioCasa: "",
-                    varMujeres: "",
-                    numMujeres: "",
-                    numHombres: ""
-                },
-                activeInput: null,
-                results: {
-                    mujer: "",
-                    hombre: ""
-                },
-                error: "",
-                hoverButton: null, 
-                cursorVisible: true 
-            };
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const TIPO_DE_CAMBIO_PEN = 3.38;
 
-            // --- 2. UI RECTS --- (Sin cambios)
-            const uiRects = {
-                preset1: { x: 30, y: 70, w: 210, h: 40, label: "Casa 1 (1700 / 1500)" },
-                preset2: { x: 260, y: 70, w: 210, h: 40, label: "Casa 2 (2200 / 2000)" },
-                
-                precioCasa: { x: 30, y: 170, w: 440, h: 40, label: "Precio de la Casa (USD)" },
-                varMujeres: { x: 30, y: 260, w: 440, h: 40, label: "Variable Precio Mujeres (USD)" },
-                numMujeres: { x: 30, y: 350, w: 210, h: 40, label: "Número de Mujeres" },
-                numHombres: { x: 260, y: 350, w: 210, h: 40, label: "Número de Hombres" },
-                
-                calculate: { x: 30, y: 420, w: 440, h: 50, label: "Calcular" }
-            };
+            // Elementos del DOM
+            const form = document.getElementById('calculadoraForm');
+            const precioCasaEl = document.getElementById('precioCasa');
+            const varMujeresEl = document.getElementById('varMujeres');
+            const numMujeresEl = document.getElementById('numMujeres');
+            const numHombresEl = document.getElementById('numHombres');
+            
+            // --- Elementos del Canvas ---
+            const canvas = document.getElementById('canvasResultados');
+            const ctx = canvas.getContext('2d'); // "ctx" es el "pincel" para dibujar
+            
+            const errorEl = document.getElementById('error');
+            const preset1Btn = document.getElementById('preset1');
+            const preset2Btn = document.getElementById('preset2');
 
-            // --- 3. FUNCIÓN DE DIBUJADO --- (Sin cambios)
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.fillStyle = "#1a1a1a";
-                ctx.font = "bold 20px -apple-system, sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("Calculadora Mineria y Jardineria Socolich", baseWidth / 2, 40);
-                drawButton(uiRects.preset1, 'preset1', '#e6f0ff', '#0056d6', '#d1e0ff');
-                drawButton(uiRects.preset2, 'preset2', '#e6f0ff', '#0056d6', '#d1e0ff');
-                drawInput(uiRects.precioCasa, 'precioCasa');
-                drawInput(uiRects.varMujeres, 'varMujeres');
-                drawInput(uiRects.numMujeres, 'numMujeres');
-                drawInput(uiRects.numHombres, 'numHombres');
-                drawButton(uiRects.calculate, 'calculate', '#007bff', '#ffffff', '#0056b3');
+            // Evento principal del formulario
+            form.addEventListener('submit', (e) => {
+                e.preventDefault(); 
+                calcularPrecios();
+            });
 
-                ctx.textAlign = "left";
-                if (state.error) {
-                    ctx.fillStyle = "#d93025";
-                    ctx.font = "600 15px -apple-system, sans-serif";
-                    ctx.fillText(state.error, 30, 510);
-                } else if (state.results.mujer || state.results.hombre) {
-                    ctx.fillStyle = "#f9f9f9";
-                    ctx.strokeStyle = "#eee";
-                    ctx.beginPath();
-                    ctx.roundRect(30, 500, 440, 100, 8);
-                    ctx.fill();
-                    ctx.stroke();
-                    ctx.fillStyle = '#333';
-                    ctx.font = "600 15px -apple-system, sans-serif";
-                    ctx.fillText("Precio por Mujer:", 45, 540);
-                    ctx.fillStyle = '#007bff';
-                    ctx.font = "700 15px -apple-system, sans-serif";
-                    ctx.fillText(state.results.mujer, 180, 540);
-                    ctx.fillStyle = '#333';
-                    ctx.font = "600 15px -apple-system, sans-serif";
-                    ctx.fillText("Precio por Hombre:", 45, 575);
-                    ctx.fillStyle = '#007bff';
-                    ctx.font = "700 15px -apple-system, sans-serif";
-                    ctx.fillText(state.results.hombre, 200, 575);
-                }
-                
-                ctx.fillStyle = "#777";
-                ctx.font = "13px -apple-system, sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(`Usando tipo de cambio: $1.00 USD = S/ ${TIPO_DE_CAMBIO_PEN} PEN`, baseWidth / 2, 650);
-            }
+            // Eventos de los botones predeterminados
+            preset1Btn.addEventListener('click', () => {
+                precioCasaEl.value = 1700;
+                varMujeresEl.value = 1500;
+                numMujeresEl.value = '';
+                numHombresEl.value = '';
+                canvas.style.display = 'none'; // Ocultar canvas
+                errorEl.textContent = '';
+            });
 
-            // --- 4. FUNCIONES AUXILIARES DE DIBUJADO --- (Sin cambios)
-            function drawButton(rect, id, bg, color, hoverBg) {
-                const isHovered = state.hoverButton === id;
-                ctx.fillStyle = isHovered ? hoverBg : bg;
-                ctx.beginPath();
-                ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 8);
-                ctx.fill();
-                ctx.globalAlpha = 1.0; 
-                ctx.fillStyle = color;
-                ctx.font = "600 15px -apple-system, sans-serif";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(rect.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
-            }
+            preset2Btn.addEventListener('click', () => {
+                precioCasaEl.value = 2200;
+                varMujeresEl.value = 2000;
+                numMujeresEl.value = '';
+                numHombresEl.value = '';
+                canvas.style.display = 'none'; // Ocultar canvas
+                errorEl.textContent = '';
+            });
 
-            function drawInput(rect, id) {
-                const isActive = state.activeInput === id;
-                ctx.fillStyle = '#555';
-                ctx.font = "600 15px -apple-system, sans-serif";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "bottom";
-                ctx.fillText(rect.label, rect.x, rect.y - 8);
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
+            function calcularPrecios() {
+                // Limpiar
+                errorEl.textContent = '';
+                // Limpiamos el canvas (borramos el dibujo anterior)
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
-                if (isActive) {
-                    ctx.strokeStyle = '#007bff';
-                    ctx.lineWidth = 2;
-                    ctx.shadowColor = 'rgba(0,123,255,0.3)';
-                    ctx.shadowBlur = 8;
-                }
-                
-                ctx.beginPath();
-                ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 8);
-                ctx.stroke();
-                ctx.lineWidth = 1;
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#1a1a1a';
-                ctx.font = "16px -apple-system, sans-serif";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "middle";
-                
-                let text = state.inputs[id];
-                // --> NUEVO: El cursor parpadeante ahora también funciona
-                //     cuando el input oculto está enfocado.
-                if (isActive && state.cursorVisible) {
-                    text += '|';
-                }
-                
-                ctx.fillText(text, rect.x + 10, rect.y + rect.h / 2);
-            }
+                // Obtener valores
+                const precioCasa = parseFloat(precioCasaEl.value);
+                const varMujeres = parseFloat(varMujeresEl.value);
+                const numMujeres = parseInt(numMujeresEl.value) || 0;
+                const numHombres = parseInt(numHombresEl.value) || 0;
 
-            // --- 5. LÓGICA DE CÁLCULO --- (Sin cambios)
-            function calculate() {
-                state.error = "";
-                state.results = { mujer: "", hombre: "" };
-                const precioCasa = parseFloat(state.inputs.precioCasa);
-                const varMujeres = parseFloat(state.inputs.varMujeres);
-                const numMujeres = parseInt(state.inputs.numMujeres) || 0;
-                const numHombres = parseInt(state.inputs.numHombres) || 0;
-                if (isNaN(precioCasa) || isNaN(varMujeres)) {
-                    state.error = 'Por favor, ingrese valores numéricos válidos.';
-                    return;
-                }
-                const totalPersonas = numMujeres + numHombres;
-                if (totalPersonas === 0) {
-                    state.error = 'El número total de personas no puede ser cero.';
-                    return;
-                }
-                let precioPorMujer_USD = 0;
-                let precioPorHombre_USD = 0;
-                if (numMujeres > 0) {
-                    precioPorMujer_USD = varMujeres / totalPersonas;
-                }
-                const totalPagadoMujeres = precioPorMujer_USD * numMujeres;
-                if (numHombres > 0) {
-                    precioPorHombre_USD = (precioCasa - totalPagadoMujeres) / numHombres;
-                }
-                if (numMujeres > 0) {
-                    const precioPorMujer_PEN = precioPorMujer_USD * TIPO_DE_CAMBIO_PEN;
-                    state.results.mujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
-                } else {
-                    state.results.mujer = 'N/A (0 mujeres)';
-                }
-                if (numHombres > 0) {
-                    const precioPorHombre_PEN = precioPorHombre_USD * TIPO_DE_CAMBIO_PEN;
-                    state.results.hombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
-                } else {
-                    state.results.hombre = 'N/A (0 hombres)';
-                }
-            }
+                // Validación
+                if (isNaN(precioCasa) || isNaN(varMujeres)) {
+                    errorEl.textContent = 'Por favor, ingrese valores numéricos válidos para los precios.';
+                    canvas.style.display = 'none';
+                    return;
+                }
 
-            // --- 6. MANEJADORES DE EVENTOS ---
+                const totalPersonas = numMujeres + numHombres;
 
-            function isMouseInRect(mouseX, mouseY, rect) {
-                return mouseX > rect.x && mouseX < rect.x + rect.w &&
-                       mouseY > rect.y && mouseY < rect.y + rect.h;
-            }
-
-            // --> CAMBIO: Lógica de Clic/Toque MODIFICADA
-            function handleInteractionStart(e) {
-                e.preventDefault(); 
-                const rect = canvas.getBoundingClientRect();
-                let clientX, clientY;
-
-                if (e.touches) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-
-                const mouseX = clientX - rect.left;
-                const mouseY = clientY - rect.top;
-                const scaledX = mouseX * (baseWidth / rect.width);
-                const scaledY = mouseY * (baseHeight / rect.height);
-
-                let clickedOnInput = false;
-
-                // Revisar si se hizo clic en un INPUT
-                for (const id in uiRects) {
-                    if (state.inputs.hasOwnProperty(id) && isMouseInRect(scaledX, scaledY, uiRects[id])) {
-                        state.activeInput = id;
-                        clickedOnInput = true;
-                        state.cursorVisible = true; 
-                        
-                        // --- NUEVO: ENFOCAR EL INPUT OCULTO ---
-                        // Sincronizar el valor y enfocarlo para mostrar el teclado
-                        hiddenInput.value = state.inputs[id];
-                        hiddenInput.focus();
-
-                        // --- NUEVO: Pedir el teclado numérico adecuado ---
-                        if (id === 'numMujeres' || id === 'numHombres') {
-                            hiddenInput.type = 'tel'; // Teclado numérico simple
-                            hiddenInput.inputMode = 'numeric';
-                        } else {
-                            hiddenInput.type = 'text'; // Teclado de texto (permite '.')
-                            hiddenInput.inputMode = 'decimal'; // Pista para que incluya el '.'
-                        }
-                        
-                        break; 
-                    }
-                }
-
-                // Si se hace clic fuera de un input
-                if (!clickedOnInput) {
-                    state.activeInput = null;
-                    // --- NUEVO: Quitar el foco y ocultar el teclado ---
-                    hiddenInput.blur();
-                }
-
-                // Clic en BOTONES
-                if (isMouseInRect(scaledX, scaledY, uiRects.preset1)) {
-                    state.inputs.precioCasa = "1700";
-                    state.inputs.varMujeres = "1500";
-                    state.inputs.numMujeres = "";
-                    state.inputs.numHombres = "";
-                    state.results = {}; state.error = "";
-                }
-                
-                if (isMouseInRect(scaledX, scaledY, uiRects.preset2)) {
-                    state.inputs.precioCasa = "2200";
-                    state.inputs.varMujeres = "2000";
-                    state.inputs.numMujeres = "";
-                    state.inputs.numHombres = "";
-                    state.results = {}; state.error = "";
-                }
-
-                if (isMouseInRect(scaledX, scaledY, uiRects.calculate)) {
-                    calculate();
-                    state.activeInput = null; 
-                    // --- NUEVO: Ocultar teclado al calcular ---
-                    hiddenInput.blur();
-                }
-
-                draw(); 
-            }
-
-            canvas.addEventListener('mousedown', handleInteractionStart);
-            canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
+                if (totalPersonas === 0) {
+                    errorEl.textContent = 'El número total de personas no puede ser cero.';
+                    canvas.style.display = 'none';
+                    return;
+                }
 
 
-            // --- ELIMINADO: El 'keydown' listener en 'document' ya no es necesario ---
-            // document.addEventListener('keydown', (e) => { ... });
 
+                let precioPorMujer_USD = 0;
+                let precioPorHombre_USD = 0;
 
-            // --- NUEVO: Escuchar el evento 'input' del input oculto ---
-            // Esto se dispara cada vez que el usuario escribe, borra, etc.
-            hiddenInput.addEventListener('input', (e) => {
-                if (state.activeInput) {
-                    const id = state.activeInput;
-                    let value = e.target.value;
+                // --- Fórmulas ---
+                if (numMujeres > 0) {
+                    precioPorMujer_USD = varMujeres / totalPersonas;
+                }
+                
+                const totalPagadoMujeres = precioPorMujer_USD * numMujeres;
 
-                    // Filtrar la entrada para que coincida con el tipo de campo
-                    if (id === 'numMujeres' || id === 'numHombres') {
-                        // Permitir solo números enteros
-                        value = value.replace(/[^0-9]/g, '');
-                    } else {
-                        // Permitir números y un solo punto decimal
-                        value = value.replace(/[^0-9.]/g, '');
-                        const parts = value.split('.');
-                        if (parts.length > 2) { // Si hay más de un punto
-                            value = parts[0] + '.' + parts.slice(1).join('');
-                        }
-                    }
+                if (numHombres > 0) {
+                    precioPorHombre_USD = (precioCasa - totalPagadoMujeres) / numHombres;
+                }
 
-                    // Actualizar el estado y el input (por si filtramos algo)
-                    state.inputs[id] = value;
-                    e.target.value = value;
-                    
-                    state.cursorVisible = true;
-                    draw(); // Redibujar el canvas con el nuevo texto
-                }
-            });
+                // --- Dibujar Resultados en Canvas ---
 
-            // --- NUEVO: Escuchar el 'Enter' en el input oculto ---
-            // Esto permite "Calcular" desde el teclado móvil
-            hiddenInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    calculate();
-                    state.activeInput = null;
-                    hiddenInput.blur(); // Ocultar teclado
-                    draw();
-                }
-            });
-            
-            // Evento de Movimiento del Ratón (Sin cambios)
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                const scaledX = mouseX * (baseWidth / rect.width);
-                const scaledY = mouseY * (baseHeight / rect.height);
-                let overButton = false;
-                let overInput = false;
-                state.hoverButton = null;
+                canvas.style.display = 'block';
+                canvas.width = canvas.clientWidth;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                let textoMujer = 'N/A (0 mujeres)';
+                let textoHombre = 'N/A (0 hombres)';
 
-                for (const id in uiRects) {
-                    if (isMouseInRect(scaledX, scaledY, uiRects[id])) {
-                        if (state.inputs.hasOwnProperty(id)) {
-                            overInput = true;
-                        } else {
-                            overButton = true;
-                            state.hoverButton = id;
-                        }
-                        break;
-                    }
-                }
-                
-                if (overButton) {
-                    canvas.style.cursor = 'pointer';
-                } else if (overInput) {
-                    canvas.style.cursor = 'text';
-                } else {
-                    canvas.style.cursor = 'default';
-                }
-                
-                draw();
-            });
+                // Preparar strings de resultado
+                if (numMujeres > 0) {
+                    const precioPorMujer_PEN = precioPorMujer_USD * TIPO_DE_CAMBIO_PEN;
+                    textoMujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
+                }
 
-            // --- 7. INICIO ---
-            
-            // Intervalo para el parpadeo del cursor (Sin cambios)
-            setInterval(() => {
-                if (state.activeInput) {
-                    state.cursorVisible = !state.cursorVisible;
-                    draw();
-                }
-            }, 500); 
+                if (numHombres > 0) {
+                    const precioPorHombre_PEN = precioPorHombre_USD * TIPO_DE_CAMBIO_PEN;
+                    textoHombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
+                }
 
-            draw(); 
-        });
-    </script>
+                // --- Comandos para dibujar ---
+                const paddingX = 15; // Margen izquierdo
+                const paddingY = 35; // Margen superior
+                const lineHeight = 40; // Espacio entre líneas
+
+                // Línea 1: Precio por Mujer
+                ctx.font = '600 15px -apple-system, sans-serif'; // Fuente para la etiqueta
+                ctx.fillStyle = '#333'; // Color para la etiqueta
+                ctx.fillText('Precio por Mujer:', paddingX, paddingY); // Dibujar texto
+                
+                ctx.font = '700 15px -apple-system, sans-serif'; // Fuente para el resultado
+                ctx.fillStyle = '#007bff'; // Color para el resultado
+                ctx.fillText(textoMujer, paddingX + 130, paddingY); // Dibujar texto
+
+                // Línea 2: Precio por Hombre
+                ctx.font = '600 15px -apple-system, sans-serif';
+                ctx.fillStyle = '#333';
+                ctx.fillText('Precio por Hombre:', paddingX, paddingY + lineHeight);
+
+                ctx.font = '700 15px -apple-system, sans-serif';
+                ctx.fillStyle = '#007bff';
+                ctx.fillText(textoHombre, paddingX + 130, paddingY + lineHeight);
+                
+                // -----------------------------
+
+                // Mostrar el canvas
+                
+            }
+        });
+    </script>
 </body>
 </html>
+
+
+make the least changes needed but please fix the code for mobile devices so that it does not look blurry or stretched when displayin the resulsts. make sure the text fits on the screen
