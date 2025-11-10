@@ -1,286 +1,321 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Jardineria y Minera Socolich</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            padding: 28px;
-            width: 100%;
-            max-width: 500px;
-            box-sizing: border-box; /* Asegura que el padding esté incluido en el ancho */
-        }
-        h1 {
-            color: #1a1a1a;
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 24px;
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #555;
-        }
-        input[type="number"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; 
-            font-size: 1rem;
-        }
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .btn {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        .btn-preset {
-            background-color: #e6f0ff;
-            color: #0056d6;
-        }
-        .btn-preset:hover {
-            background-color: #d1e0ff;
-        }
-        .btn-calcular {
-            background-color: #007bff;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1rem;
-        }
-        .btn-calcular:hover {
-            background-color: #0056b3;
-            transform: translateY(-1px);
-        }
-        
-        /* --- Estilos para el Canvas --- */
-        #canvasResultados {
-            margin-top: 24px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            width: 100%; /* Hace el canvas responsive en ancho */
-            height: 100px;  /* Altura fija */
-            display: none; /* Oculto al inicio */
-        }
-        /* ------------------------------- */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Jardineria y Minera Socolich</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 28px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box; /* Asegura que el padding esté incluido en el ancho */
+        }
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; 
+            font-size: 1rem;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-preset {
+            background-color: #e6f0ff;
+            color: #0056d6;
+        }
+        .btn-preset:hover {
+            background-color: #d1e0ff;
+        }
+        .btn-calcular {
+            background-color: #007bff;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .btn-calcular:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        /* --- Estilos para el Canvas --- */
+        #canvasResultados {
+            margin-top: 24px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            width: 100%; /* Hace el canvas responsive en ancho */
+            height: 100px;  /* Altura fija */
+            display: none; /* Oculto al inicio */
+        }
+        /* ------------------------------- */
 
-        #error {
-            color: #d93025;
-            font-weight: 600;
-            text-align: center;
-            margin-top: 15px;
-        }
-        .tipo-cambio {
-            font-size: 0.85rem;
-            color: #777;
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
+        #error {
+            color: #d93025;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .tipo-cambio {
+            font-size: 0.85rem;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Jardineria y Minera Socolich</h1>
+    <div class="container">
+        <h1>Jardineria y Minera Socolich</h1>
 
-        <div class="preset-buttons">
-            <button class="btn btn-preset" id="preset1">Casa 1 (1700 / 1500)</button>
-            <button class="btn btn-preset" id="preset2">Casa 2 (2200 / 2000)</button>
-        </div>
+        <div class="preset-buttons">
+            <button class="btn btn-preset" id="preset1">Casa 1 (1700 / 1500)</button>
+            <button class="btn btn-preset" id="preset2">Casa 2 (2200 / 2000)</button>
+        </div>
 
-        <form id="calculadoraForm">
-            <div class="form-group">
-                <label for="precioCasa">Precio de la Casa (USD)</label>
-                <input type="number" id="precioCasa" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="varMujeres">Variable Precio Mujeres (USD)</label>
-                <input type="number" id="varMujeres" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="numMujeres">Número de Mujeres</label>
-                <input type="number" id="numMujeres" min="0" step="1" required>
-            </div>
-            <div class="form-group">
-                <label for="numHombres">Número de Hombres</label>
-                <input type="number" id="numHombres" min="0" step="1" required>
-            </div>
-            <button type="submit" class="btn btn-calcular">Calcular</button>
-        </form>
+        <form id="calculadoraForm">
+            <div class="form-group">
+                <label for="precioCasa">Precio de la Casa (USD)</label>
+                <input type="number" id="precioCasa" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="varMujeres">Variable Precio Mujeres (USD)</label>
+                <input type="number" id="varMujeres" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="numMujeres">Número de Mujeres</label>
+                <input type="number" id="numMujeres" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+                <label for="numHombres">Número de Hombres</label>
+                <input type="number" id="numHombres" min="0" step="1" required>
+            </div>
+            <button type="submit" class="btn btn-calcular">Calcular</button>
+        </form>
 
-        <canvas id="canvasResultados" height="100"></canvas>
+        <canvas id="canvasResultados" height="100"></canvas>
 
-        <div id="error"></div>
-        <div class="tipo-cambio">Usando tipo de cambio: $1.00 USD = S/ 3.38 PEN</div>
-    </div>
+        <div id="error"></div>
+        <div class="tipo-cambio">Usando tipo de cambio: $1.00 USD = S/ 3.38 PEN</div>
+    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            const TIPO_DE_CAMBIO_PEN = 3.38;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const TIPO_DE_CAMBIO_PEN = 3.38;
 
-            // Elementos del DOM
-            const form = document.getElementById('calculadoraForm');
-            const precioCasaEl = document.getElementById('precioCasa');
-            const varMujeresEl = document.getElementById('varMujeres');
-            const numMujeresEl = document.getElementById('numMujeres');
-            const numHombresEl = document.getElementById('numHombres');
-            
-            // --- Elementos del Canvas ---
-            const canvas = document.getElementById('canvasResultados');
-            const ctx = canvas.getContext('2d'); // "ctx" es el "pincel" para dibujar
-            
-            const errorEl = document.getElementById('error');
-            const preset1Btn = document.getElementById('preset1');
-            const preset2Btn = document.getElementById('preset2');
+            // Elementos del DOM
+            const form = document.getElementById('calculadoraForm');
+            const precioCasaEl = document.getElementById('precioCasa');
+            const varMujeresEl = document.getElementById('varMujeres');
+            const numMujeresEl = document.getElementById('numMujeres');
+            const numHombresEl = document.getElementById('numHombres');
+            
+            // --- Elementos del Canvas ---
+            const canvas = document.getElementById('canvasResultados');
+            const ctx = canvas.getContext('2d'); // "ctx" es el "pincel" para dibujar
+            
+            const errorEl = document.getElementById('error');
+            const preset1Btn = document.getElementById('preset1');
+            const preset2Btn = document.getElementById('preset2');
 
-            // Evento principal del formulario
-            form.addEventListener('submit', (e) => {
-                e.preventDefault(); 
-                calcularPrecios();
-            });
+            // Evento principal del formulario
+            form.addEventListener('submit', (e) => {
+                e.preventDefault(); 
+                calcularPrecios();
+            });
 
-            // Eventos de los botones predeterminados
-            preset1Btn.addEventListener('click', () => {
-                precioCasaEl.value = 1700;
-                varMujeresEl.value = 1500;
-                numMujeresEl.value = '';
-                numHombresEl.value = '';
-                canvas.style.display = 'none'; // Ocultar canvas
-                errorEl.textContent = '';
-            });
+            // Eventos de los botones predeterminados
+            preset1Btn.addEventListener('click', () => {
+                precioCasaEl.value = 1700;
+                varMujeresEl.value = 1500;
+                numMujeresEl.value = '';
+                numHombresEl.value = '';
+                canvas.style.display = 'none'; // Ocultar canvas
+                errorEl.textContent = '';
+            });
 
-            preset2Btn.addEventListener('click', () => {
-                precioCasaEl.value = 2200;
-                varMujeresEl.value = 2000;
-                numMujeresEl.value = '';
-                numHombresEl.value = '';
-                canvas.style.display = 'none'; // Ocultar canvas
-                errorEl.textContent = '';
-            });
+            preset2Btn.addEventListener('click', () => {
+                precioCasaEl.value = 2200;
+                varMujeresEl.value = 2000;
+                numMujeresEl.value = '';
+                numHombresEl.value = '';
+                canvas.style.display = 'none'; // Ocultar canvas
+                errorEl.textContent = '';
+            });
 
-            function calcularPrecios() {
-                // Limpiar
-                errorEl.textContent = '';
-                // Limpiamos el canvas (borramos el dibujo anterior)
-                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            function calcularPrecios() {
+                // Limpiar
+                errorEl.textContent = '';
+                // Limpiamos el canvas (borramos el dibujo anterior)
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
-                // Obtener valores
-                const precioCasa = parseFloat(precioCasaEl.value);
-                const varMujeres = parseFloat(varMujeresEl.value);
-                const numMujeres = parseInt(numMujeresEl.value) || 0;
-                const numHombres = parseInt(numHombresEl.value) || 0;
+                // Obtener valores
+                const precioCasa = parseFloat(precioCasaEl.value);
+                const varMujeres = parseFloat(varMujeresEl.value);
+                const numMujeres = parseInt(numMujeresEl.value) || 0;
+                const numHombres = parseInt(numHombresEl.value) || 0;
 
-                // Validación
-                if (isNaN(precioCasa) || isNaN(varMujeres)) {
-                    errorEl.textContent = 'Por favor, ingrese valores numéricos válidos para los precios.';
-                    canvas.style.display = 'none';
-                    return;
-                }
+                // Validación
+                if (isNaN(precioCasa) || isNaN(varMujeres)) {
+                    errorEl.textContent = 'Por favor, ingrese valores numéricos válidos para los precios.';
+                    canvas.style.display = 'none';
+                    return;
+                }
 
-                const totalPersonas = numMujeres + numHombres;
+                const totalPersonas = numMujeres + numHombres;
 
-                if (totalPersonas === 0) {
-                    errorEl.textContent = 'El número total de personas no puede ser cero.';
-                    canvas.style.display = 'none';
-                    return;
-                }
+                if (totalPersonas === 0) {
+                    errorEl.textContent = 'El número total de personas no puede ser cero.';
+                    canvas.style.display = 'none';
+                    return;
+                }
 
 
 
-                let precioPorMujer_USD = 0;
-                let precioPorHombre_USD = 0;
+                let precioPorMujer_USD = 0;
+                let precioPorHombre_USD = 0;
 
-                // --- Fórmulas ---
-                if (numMujeres > 0) {
-                    precioPorMujer_USD = varMujeres / totalPersonas;
-                }
-                
-                const totalPagadoMujeres = precioPorMujer_USD * numMujeres;
+                // --- Fórmulas ---
+                if (numMujeres > 0) {
+                    precioPorMujer_USD = varMujeres / totalPersonas;
+                }
+                
+                const totalPagadoMujeres = precioPorMujer_USD * numMujeres;
 
-                if (numHombres > 0) {
-                    precioPorHombre_USD = (precioCasa - totalPagadoMujeres) / numHombres;
-                }
+                if (numHombres > 0) {
+                    precioPorHombre_USD = (precioCasa - totalPagadoMujeres) / numHombres;
+                }
 
-                // --- Dibujar Resultados en Canvas ---
+                // --- Dibujar Resultados en Canvas ---
 
-                canvas.style.display = 'block';
-                canvas.width = canvas.clientWidth;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                let textoMujer = 'N/A (0 mujeres)';
-                let textoHombre = 'N/A (0 hombres)';
+                canvas.style.display = 'block';
 
-                // Preparar strings de resultado
-                if (numMujeres > 0) {
-                    const precioPorMujer_PEN = precioPorMujer_USD * TIPO_DE_CAMBIO_PEN;
-                    textoMujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
-                }
+                // ===================================
+                // === INICIO DE CAMBIOS CORREGIDOS ===
+                // ===================================
 
-                if (numHombres > 0) {
-                    const precioPorHombre_PEN = precioPorHombre_USD * TIPO_DE_CAMBIO_PEN;
-                    textoHombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
-                }
+                // --- FIX 1: PARA CANVAS BORROSO/ESTIRADO (HiDPI / Retina) ---
+                
+                // 1. Obtener el tamaño de visualización CSS
+                const cssWidth = canvas.clientWidth;
+                const cssHeight = canvas.clientHeight; // 100px según el CSS
+                
+                // 2. Obtener la relación de píxeles del dispositivo
+                const dpr = window.devicePixelRatio || 1;
+                
+                // 3. Restablecer transformaciones (importante si se vuelve a calcular)
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-                // --- Comandos para dibujar ---
-                const paddingX = 15; // Margen izquierdo
-                const paddingY = 35; // Margen superior
-                const lineHeight = 40; // Espacio entre líneas
+                // 4. Establecer el tamaño real del búfer de dibujo (atributos)
+                canvas.width = cssWidth * dpr;
+                canvas.height = cssHeight * dpr;
+                
+                // 5. Limpiar *todo* el búfer (esta operación NO es afectada por scale())
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
-                // Línea 1: Precio por Mujer
-                ctx.font = '600 15px -apple-system, sans-serif'; // Fuente para la etiqueta
-                ctx.fillStyle = '#333'; // Color para la etiqueta
-                ctx.fillText('Precio por Mujer:', paddingX, paddingY); // Dibujar texto
-                
-                ctx.font = '700 15px -apple-system, sans-serif'; // Fuente para el resultado
-                ctx.fillStyle = '#007bff'; // Color para el resultado
-                ctx.fillText(textoMujer, paddingX + 130, paddingY); // Dibujar texto
+                // 6. Escalar el "pincel" (contexto) para que podamos usar coordenadas CSS
+                ctx.scale(dpr, dpr);
+                // --- FIN FIX 1 ---
 
-                // Línea 2: Precio por Hombre
-                ctx.font = '600 15px -apple-system, sans-serif';
-                ctx.fillStyle = '#333';
-                ctx.fillText('Precio por Hombre:', paddingX, paddingY + lineHeight);
 
-                ctx.font = '700 15px -apple-system, sans-serif';
-                ctx.fillStyle = '#007bff';
-                ctx.fillText(textoHombre, paddingX + 130, paddingY + lineHeight);
-                
-                // -----------------------------
+                let textoMujer = 'N/A (0 mujeres)';
+                let textoHombre = 'N/A (0 hombres)';
 
-                // Mostrar el canvas
-                
-            }
-        });
-    </script>
+                // Preparar strings de resultado
+                if (numMujeres > 0) {
+                    const precioPorMujer_PEN = precioPorMujer_USD * TIPO_DE_CAMBIO_PEN;
+                    textoMujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
+                }
+
+                if (numHombres > 0) {
+                    const precioPorHombre_PEN = precioPorHombre_USD * TIPO_DE_CAMBIO_PEN;
+                    textoHombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
+                }
+
+                // --- FIX 2: LAYOUT RESPONSIVE (APILADO) ---
+                // Este layout apila la etiqueta y el valor para que quepan en pantallas estrechas.
+                
+                const paddingX = 15;        // Margen izquierdo
+                const labelY = 25;          // Posición Y de la primera etiqueta
+                const valueY = 45;          // Posición Y del primer valor
+                const blockSpacing = 45;    // Espacio vertical entre el bloque de mujer y hombre
+                const valueIndent = paddingX + 10; // Sangría para el valor
+                const fontSize = 14;        // Tamaño de fuente legible
+
+                // --- Bloque 1: Precio por Mujer ---
+                // Etiqueta
+                ctx.font = `600 ${fontSize}px -apple-system, sans-serif`; 
+                ctx.fillStyle = '#333'; 
+                ctx.textAlign = 'left';
+                ctx.fillText('Precio por Mujer:', paddingX, labelY); 
+                
+                // Valor
+                ctx.font = `700 ${fontSize}px -apple-system, sans-serif`; 
+                ctx.fillStyle = '#007bff'; 
+                ctx.fillText(textoMujer, valueIndent, valueY); 
+
+                // --- Bloque 2: Precio por Hombre ---
+                // Etiqueta
+                ctx.font = `600 ${fontSize}px -apple-system, sans-serif`;
+                ctx.fillStyle = '#333';
+                ctx.fillText('Precio por Hombre:', paddingX, labelY + blockSpacing);
+
+                // Valor
+                ctx.font = `700 ${fontSize}px -apple-system, sans-serif`;
+                ctx.fillStyle = '#007bff';
+                ctx.fillText(textoHombre, valueIndent, valueY + blockSpacing);
+                
+                // =================================
+                // === FIN DE CAMBIOS CORREGIDOS ===
+                // =================================
+            }
+        });
+    </script>
 </body>
 </html>
