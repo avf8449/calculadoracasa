@@ -3,223 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Precios (Versión Canvas)</title>
+    <title>Calculadora 100% Canvas</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
+            background-color: #f0f2f5;
             color: #333;
             margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: center; /* Centra verticalmente */
             min-height: 100vh;
         }
-        .container {
+        /* El canvas tendrá un fondo y sombra para que parezca una 'app' */
+        canvas {
             background-color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            padding: 28px;
-            width: 100%;
-            max-width: 500px;
-            box-sizing: border-box; /* Asegura que el padding esté incluido en el ancho */
-        }
-        h1 {
-            color: #1a1a1a;
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 24px;
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #555;
-        }
-        input[type="number"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; 
-            font-size: 1rem;
-        }
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .btn {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        .btn-preset {
-            background-color: #e6f0ff;
-            color: #0056d6;
-        }
-        .btn-preset:hover {
-            background-color: #d1e0ff;
-        }
-        .btn-calcular {
-            background-color: #007bff;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            font-size: 1.1rem;
-        }
-        .btn-calcular:hover {
-            background-color: #0056b3;
-            transform: translateY(-1px);
-        }
-        
-        /* --- Estilos para el Canvas --- */
-        #canvasResultados {
-            margin-top: 24px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            width: 100%; /* Hace el canvas responsive en ancho */
-            height: 100px;  /* Altura fija */
-            display: none; /* Oculto al inicio */
-        }
-        /* ------------------------------- */
-
-        #error {
-            color: #d93025;
-            font-weight: 600;
-            text-align: center;
-            margin-top: 15px;
-        }
-        .tipo-cambio {
-            font-size: 0.85rem;
-            color: #777;
-            text-align: center;
-            margin-top: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            cursor: default; /* Cursor normal por defecto */
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Calculadora de Precios (Canvas)</h1>
-
-        <div class="preset-buttons">
-            <button class="btn btn-preset" id="preset1">Casa 1 (1700 / 1500)</button>
-            <button class="btn btn-preset" id="preset2">Casa 2 (2200 / 2000)</button>
-        </div>
-
-        <form id="calculadoraForm">
-            <div class="form-group">
-                <label for="precioCasa">Precio de la Casa (USD)</label>
-                <input type="number" id="precioCasa" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="varMujeres">Variable Precio Mujeres (USD)</label>
-                <input type="number" id="varMujeres" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="numMujeres">Número de Mujeres</label>
-                <input type="number" id="numMujeres" min="0" step="1" required>
-            </div>
-            <div class="form-group">
-                <label for="numHombres">Número de Hombres</label>
-                <input type="number" id="numHombres" min="0" step="1" required>
-            </div>
-            <button type="submit" class="btn btn-calcular">Calcular</button>
-        </form>
-
-        <canvas id="canvasResultados" width="440" height="100"></canvas>
-
-        <div id="error"></div>
-        <div class="tipo-cambio">Usando tipo de cambio: $1.00 USD = S/ 3.38 PEN</div>
-    </div>
+    <!-- El único elemento HTML es el Canvas -->
+    <canvas id="appCanvas" width="500" height="700"></canvas>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
+            const canvas = document.getElementById('appCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // --- FIX PARA LA BORROSIDAD (HiDPI / Retina) ---
+            // Obtenemos el tamaño base del CSS que queremos
+            const baseWidth = 500;
+            const baseHeight = 700;
+            // Obtenemos la densidad de píxeles del dispositivo (ej. 1, 2, 3)
+            const dpr = window.devicePixelRatio || 1; 
+
+            // 1. Asignar el tamaño real en píxeles al canvas (atributos)
+            // (ej. 500 * 2 = 1000 píxeles de ancho)
+            canvas.width = baseWidth * dpr;
+            canvas.height = baseHeight * dpr;
+
+            // 2. Asignar el tamaño de visualización (CSS)
+            // (Le decimos al navegador que lo muestre como 500px)
+            canvas.style.width = `${baseWidth}px`;
+            canvas.style.height = `${baseHeight}px`;
+
+            // 3. Escalar todo el contexto de dibujo
+            // Ahora, cuando dibujemos en (x: 30), en realidad lo hará en (x: 60)
+            // pero se verá en la posición (30) del CSS, ¡resultando en una imagen nítida!
+            ctx.scale(dpr, dpr);
+            // --- FIN DEL FIX ---
+
             const TIPO_DE_CAMBIO_PEN = 3.38;
 
-            // Elementos del DOM
-            const form = document.getElementById('calculadoraForm');
-            const precioCasaEl = document.getElementById('precioCasa');
-            const varMujeresEl = document.getElementById('varMujeres');
-            const numMujeresEl = document.getElementById('numMujeres');
-            const numHombresEl = document.getElementById('numHombres');
-            
-            // --- Elementos del Canvas ---
-            const canvas = document.getElementById('canvasResultados');
-            const ctx = canvas.getContext('2d'); // "ctx" es el "pincel" para dibujar
-            
-            const errorEl = document.getElementById('error');
-            const preset1Btn = document.getElementById('preset1');
-            const preset2Btn = document.getElementById('preset2');
+            // --- 1. DEFINICIÓN DEL ESTADO ---
+            // Guardamos todos los valores de la app en un objeto
+            const state = {
+                inputs: {
+                    precioCasa: "",
+                    varMujeres: "",
+                    numMujeres: "",
+                    numHombres: ""
+                },
+                activeInput: null, // Guarda qué campo está "seleccionado"
+                results: {
+                    mujer: "",
+                    hombre: ""
+                },
+                error: "",
+                hoverButton: null, // Para el efecto hover del ratón
+                cursorVisible: true // Para el parpadeo del cursor
+            };
 
-            // Evento principal del formulario
-            form.addEventListener('submit', (e) => {
-                e.preventDefault(); 
-                calcularPrecios();
-            });
+            // --- 2. DEFINICIÓN DE LA INTERFAZ (UI) ---
+            // Definimos las coordenadas (x, y, ancho, alto) de todos los elementos
+            // con los que se puede interactuar.
+            const uiRects = {
+                preset1: { x: 30, y: 70, w: 210, h: 40, label: "Casa 1 (1700 / 1500)" },
+                preset2: { x: 260, y: 70, w: 210, h: 40, label: "Casa 2 (2200 / 2000)" },
+                
+                precioCasa: { x: 30, y: 170, w: 440, h: 40, label: "Precio de la Casa (USD)" },
+                varMujeres: { x: 30, y: 260, w: 440, h: 40, label: "Variable Precio Mujeres (USD)" },
+                numMujeres: { x: 30, y: 350, w: 210, h: 40, label: "Número de Mujeres" },
+                numHombres: { x: 260, y: 350, w: 210, h: 40, label: "Número de Hombres" },
+                
+                calculate: { x: 30, y: 420, w: 440, h: 50, label: "Calcular" }
+            };
 
-            // Eventos de los botones predeterminados
-            preset1Btn.addEventListener('click', () => {
-                precioCasaEl.value = 1700;
-                varMujeresEl.value = 1500;
-                numMujeresEl.value = '';
-                numHombresEl.value = '';
-                canvas.style.display = 'none'; // Ocultar canvas
-                errorEl.textContent = '';
-            });
+            // --- 3. FUNCIÓN PRINCIPAL DE DIBUJADO ---
+            // Esta función se llama CADA VEZ que algo cambia (un clic, una tecla)
+            function draw() {
+                // Limpiar todo el canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Dibujar Título
+                ctx.fillStyle = "#1a1a1a";
+                ctx.font = "bold 20px -apple-system, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("Calculadora Mineria y Jardineria Socolich", baseWidth / 2, 40);
 
-            preset2Btn.addEventListener('click', () => {
-                precioCasaEl.value = 2200;
-                varMujeresEl.value = 2000;
-                numMujeresEl.value = '';
-                numHombresEl.value = '';
-                canvas.style.display = 'none'; // Ocultar canvas
-                errorEl.textContent = '';
-            });
+                // Dibujar Botones Preset
+                drawButton(uiRects.preset1, 'preset1', '#e6f0ff', '#0056d6', '#d1e0ff');
+                drawButton(uiRects.preset2, 'preset2', '#e6f0ff', '#0056d6', '#d1e0ff');
 
-            function calcularPrecios() {
-                // Limpiar
-                errorEl.textContent = '';
-                // Limpiamos el canvas (borramos el dibujo anterior)
-                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                // Dibujar Campos de Input
+                drawInput(uiRects.precioCasa, 'precioCasa');
+                drawInput(uiRects.varMujeres, 'varMujeres');
+                drawInput(uiRects.numMujeres, 'numMujeres');
+                drawInput(uiRects.numHombres, 'numHombres');
 
-                // Obtener valores
-                const precioCasa = parseFloat(precioCasaEl.value);
-                const varMujeres = parseFloat(varMujeresEl.value);
-                const numMujeres = parseInt(numMujeresEl.value) || 0;
-                const numHombres = parseInt(numHombresEl.value) || 0;
+                // Dibujar Botón de Calcular
+                drawButton(uiRects.calculate, 'calculate', '#007bff', '#ffffff', '#0056b3');
 
-                // Validación
+                // Dibujar Resultados o Errores
+                ctx.textAlign = "left";
+                if (state.error) {
+                    ctx.fillStyle = "#d93025";
+                    ctx.font = "600 15px -apple-system, sans-serif";
+                    ctx.fillText(state.error, 30, 510);
+                } else if (state.results.mujer || state.results.hombre) {
+                    // Dibujar fondo de resultados
+                    ctx.fillStyle = "#f9f9f9";
+                    ctx.strokeStyle = "#eee";
+                    ctx.beginPath();
+                    // Usar roundRect para esquinas redondeadas
+                    ctx.roundRect(30, 500, 440, 100, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Texto Mujer
+                    ctx.fillStyle = '#333';
+                    ctx.font = "600 15px -apple-system, sans-serif";
+                    ctx.fillText("Precio por Mujer:", 45, 540);
+                    ctx.fillStyle = '#007bff';
+                    ctx.font = "700 15px -apple-system, sans-serif";
+                    ctx.fillText(state.results.mujer, 180, 540);
+                    
+                    // Texto Hombre
+                    ctx.fillStyle = '#333';
+                    ctx.font = "600 15px -apple-system, sans-serif";
+                    ctx.fillText("Precio por Hombre:", 45, 575);
+                    ctx.fillStyle = '#007bff';
+                    ctx.font = "700 15px -apple-system, sans-serif";
+                    ctx.fillText(state.results.hombre, 200, 575);
+                }
+                
+                // Dibujar Tipo de Cambio
+                ctx.fillStyle = "#777";
+                ctx.font = "13px -apple-system, sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(`Usando tipo de cambio: $1.00 USD = S/ ${TIPO_DE_CAMBIO_PEN} PEN`, baseWidth / 2, 650);
+            }
+
+            // --- 4. FUNCIONES AUXILIARES DE DIBUJADO ---
+
+            function drawButton(rect, id, bg, color, hoverBg) {
+                // Efecto hover
+                const isHovered = state.hoverButton === id;
+                
+                ctx.fillStyle = isHovered ? hoverBg : bg;
+                
+                ctx.beginPath();
+                // Usar roundRect para esquinas redondeadas (8px radius)
+                ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 8);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1.0; // Restaurar transparencia
+
+                ctx.fillStyle = color;
+                ctx.font = "600 15px -apple-system, sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(rect.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
+            }
+
+            function drawInput(rect, id) {
+                const isActive = state.activeInput === id;
+
+                // Dibujar Etiqueta
+                ctx.fillStyle = '#555';
+                ctx.font = "600 15px -apple-system, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "bottom";
+                ctx.fillText(rect.label, rect.x, rect.y - 8);
+
+                // --- Dibujar Caja ---
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+
+                // Efecto de "Glow" si está activo
+                if (isActive) {
+                    ctx.strokeStyle = '#007bff';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = 'rgba(0,123,255,0.3)';
+                    ctx.shadowBlur = 8;
+                }
+                
+                ctx.beginPath();
+                // Usar roundRect para esquinas redondeadas (8px radius)
+                ctx.roundRect(rect.x, rect.y, rect.w, rect.h, 8);
+                ctx.stroke();
+
+                // Resetear sombras y estilos
+                ctx.lineWidth = 1;
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                // --- Fin Dibujar Caja ---
+
+                // Dibujar el Texto dentro de la caja
+                ctx.fillStyle = '#1a1a1a';
+                ctx.font = "16px -apple-system, sans-serif";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                
+                let text = state.inputs[id];
+                // Simular un cursor parpadeante si está activo
+                if (isActive && state.cursorVisible) {
+                    text += '|';
+                }
+                
+                ctx.fillText(text, rect.x + 10, rect.y + rect.h / 2);
+            }
+
+            // --- 5. LÓGICA DE CÁLCULO ---
+
+            function calculate() {
+                // Resetear estado
+                state.error = "";
+                state.results = { mujer: "", hombre: "" };
+
+                const precioCasa = parseFloat(state.inputs.precioCasa);
+                const varMujeres = parseFloat(state.inputs.varMujeres);
+                const numMujeres = parseInt(state.inputs.numMujeres) || 0;
+                const numHombres = parseInt(state.inputs.numHombres) || 0;
+
                 if (isNaN(precioCasa) || isNaN(varMujeres)) {
-                    errorEl.textContent = 'Por favor, ingrese valores numéricos válidos para los precios.';
-                    canvas.style.display = 'none';
+                    state.error = 'Por favor, ingrese valores numéricos válidos.';
                     return;
                 }
 
                 const totalPersonas = numMujeres + numHombres;
-
                 if (totalPersonas === 0) {
-                    errorEl.textContent = 'El número total de personas no puede ser cero.';
-                    canvas.style.display = 'none';
+                    state.error = 'El número total de personas no puede ser cero.';
                     return;
                 }
 
                 let precioPorMujer_USD = 0;
                 let precioPorHombre_USD = 0;
 
-                // --- Fórmulas ---
                 if (numMujeres > 0) {
                     precioPorMujer_USD = varMujeres / totalPersonas;
                 }
@@ -230,50 +266,156 @@
                     precioPorHombre_USD = (precioCasa - totalPagadoMujeres) / numHombres;
                 }
 
-                // --- Dibujar Resultados en Canvas ---
-                
-                let textoMujer = 'N/A (0 mujeres)';
-                let textoHombre = 'N/A (0 hombres)';
-
-                // Preparar strings de resultado
+                // Guardar resultados en el estado
                 if (numMujeres > 0) {
                     const precioPorMujer_PEN = precioPorMujer_USD * TIPO_DE_CAMBIO_PEN;
-                    textoMujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
+                    state.results.mujer = `$${precioPorMujer_USD.toFixed(2)} USD / S/ ${precioPorMujer_PEN.toFixed(2)} PEN`;
+                } else {
+                    state.results.mujer = 'N/A (0 mujeres)';
                 }
 
                 if (numHombres > 0) {
                     const precioPorHombre_PEN = precioPorHombre_USD * TIPO_DE_CAMBIO_PEN;
-                    textoHombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
+                    state.results.hombre = `$${precioPorHombre_USD.toFixed(2)} USD / S/ ${precioPorHombre_PEN.toFixed(2)} PEN`;
+                } else {
+                    state.results.hombre = 'N/A (0 hombres)';
+                }
+            }
+
+            // --- 6. MANEJADORES DE EVENTOS ---
+
+            // Función auxiliar para detectar clics
+            function isMouseInRect(mouseX, mouseY, rect) {
+                return mouseX > rect.x && mouseX < rect.x + rect.w &&
+                       mouseY > rect.y && mouseY < rect.y + rect.h;
+            }
+
+            // Evento de Clic
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                let clickedOnInput = false;
+
+                // Revisar si se hizo clic en un INPUT
+                for (const id in uiRects) {
+                    if (state.inputs.hasOwnProperty(id) && isMouseInRect(mouseX, mouseY, uiRects[id])) {
+                        state.activeInput = id;
+                        clickedOnInput = true;
+                        state.cursorVisible = true; // Mostrar cursor al hacer clic
+                        break; // Salir del bucle
+                    }
                 }
 
-                // --- Comandos para dibujar ---
-                const paddingX = 15; // Margen izquierdo
-                const paddingY = 35; // Margen superior
-                const lineHeight = 40; // Espacio entre líneas
+                // Si no se hizo clic en un input, se quita el foco
+                if (!clickedOnInput) {
+                    state.activeInput = null;
+                }
 
-                // Línea 1: Precio por Mujer
-                ctx.font = '600 15px -apple-system, sans-serif'; // Fuente para la etiqueta
-                ctx.fillStyle = '#333'; // Color para la etiqueta
-                ctx.fillText('Precio por Mujer:', paddingX, paddingY); // Dibujar texto
+                // Revisar si se hizo clic en un BOTÓN
+                if (isMouseInRect(mouseX, mouseY, uiRects.preset1)) {
+                    state.inputs.precioCasa = "1700";
+                    state.inputs.varMujeres = "1500";
+                    state.inputs.numMujeres = "";
+                    state.inputs.numHombres = "";
+                    state.results = {}; state.error = "";
+                }
                 
-                ctx.font = '700 15px -apple-system, sans-serif'; // Fuente para el resultado
-                ctx.fillStyle = '#007bff'; // Color para el resultado
-                ctx.fillText(textoMujer, paddingX + 130, paddingY); // Dibujar texto
+                if (isMouseInRect(mouseX, mouseY, uiRects.preset2)) {
+                    state.inputs.precioCasa = "2200";
+                    state.inputs.varMujeres = "2000";
+                    state.inputs.numMujeres = "";
+                    state.inputs.numHombres = "";
+                    state.results = {}; state.error = "";
+                }
 
-                // Línea 2: Precio por Hombre
-                ctx.font = '600 15px -apple-system, sans-serif';
-                ctx.fillStyle = '#333';
-                ctx.fillText('Precio por Hombre:', paddingX, paddingY + lineHeight);
+                if (isMouseInRect(mouseX, mouseY, uiRects.calculate)) {
+                    calculate();
+                    state.activeInput = null; // Quitar foco después de calcular
+                }
 
-                ctx.font = '700 15px -apple-system, sans-serif';
-                ctx.fillStyle = '#007bff';
-                ctx.fillText(textoHombre, paddingX + 130, paddingY + lineHeight);
+                draw(); // Volver a dibujar toda la app con los cambios
+            });
+
+            // Evento de Teclado (Escucha en todo el documento)
+            document.addEventListener('keydown', (e) => {
+                // Si no hay ningún input activo, no hacer nada
+                if (state.activeInput === null) return;
                 
-                // -----------------------------
+                // Evitar que la tecla haga su acción por defecto (ej. Backspace no retrocede la página)
+                e.preventDefault(); 
+                
+                const id = state.activeInput;
+                const key = e.key;
 
-                // Mostrar el canvas
-                canvas.style.display = 'block';
-            }
+                if (key === 'Backspace') {
+                    // Borrar último caracter
+                    state.inputs[id] = state.inputs[id].slice(0, -1);
+                } else if (key === 'Enter') {
+                    // Calcular al presionar Enter
+                    calculate();
+                    state.activeInput = null; // Quitar foco
+                } else if (key === '.' && !state.inputs[id].includes('.')) {
+                    // Añadir punto decimal (solo uno)
+                    state.inputs[id] += key;
+                } else if (key >= '0' && key <= '9') {
+                    // Añadir números
+                    state.inputs[id] += key;
+                }
+                
+                state.cursorVisible = true; // Mostrar cursor al teclear
+                draw(); // Volver a dibujar la app con el texto actualizado
+            });
+            
+            // Evento de Movimiento del Ratón (para efecto hover y cursor)
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                let overButton = false;
+                let overInput = false;
+                state.hoverButton = null;
+
+                for (const id in uiRects) {
+                    if (isMouseInRect(mouseX, mouseY, uiRects[id])) {
+                        if (state.inputs.hasOwnProperty(id)) {
+                            // Sobre un input
+                            overInput = true;
+                        } else {
+                            // Sobre un botón
+                            overButton = true;
+                            state.hoverButton = id;
+                        }
+                        break;
+                    }
+                }
+                
+                // Cambiar el cursor
+                if (overButton) {
+                    canvas.style.cursor = 'pointer';
+                } else if (overInput) {
+                    canvas.style.cursor = 'text';
+                } else {
+                    canvas.style.cursor = 'default';
+                }
+                
+                draw(); // Redibujar para mostrar el efecto hover
+            });
+
+            // --- 7. INICIO ---
+            
+            // Intervalo para el parpadeo del cursor
+            // Solo redibuja si un input está activo
+            setInterval(() => {
+                if (state.activeInput) {
+                    state.cursorVisible = !state.cursorVisible;
+                    draw();
+                }
+            }, 500); // Parpadea cada 500ms
+
+            draw(); // Dibujar la aplicación por primera vez
         });
     </script>
 </body>
